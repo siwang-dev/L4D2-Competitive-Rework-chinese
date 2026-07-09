@@ -15,7 +15,7 @@
 
     "TagSelection"
 	{
-		"chi"		"{red}<{default}Tank の选择{red}>"
+		"chi"		"{red}<{default}Tank 选择{red}>"
 	}
     "YouBecomeTank"
 	{
