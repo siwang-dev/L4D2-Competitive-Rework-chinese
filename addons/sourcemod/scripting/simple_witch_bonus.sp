@@ -17,8 +17,6 @@
 
 new     bool:           g_bLateLoad                                         = false;
 new     Handle:         g_hCvarBonus                                        = INVALID_HANDLE;
-new     Handle:         g_hCvarPrint                                        = INVALID_HANDLE;
-new     Handle:         g_hCvarBonusAlways                                  = INVALID_HANDLE;
 new     Handle:         g_hTrieEntityCreated                                = INVALID_HANDLE;
 new     Handle:         g_hWitchTrie                                        = INVALID_HANDLE;
 
@@ -34,7 +32,7 @@ public Plugin:myinfo =
     name = "Simple Witch Kill Bonus",
     author = "Tabun",
     description = "Gives bonus for witches getting killed without doing damage to survivors (uses pbonus).",
-    version = "0.9.3",
+    version = "0.9.1",
     url = "none"
 }
 
@@ -49,9 +47,7 @@ public OnPluginStart()
     HookEvent("witch_spawn", Event_WitchSpawned, EventHookMode_Post);
     HookEvent("witch_killed", Event_WitchKilled, EventHookMode_Post);
 
-    g_hCvarBonus = CreateConVar("sm_simple_witch_bonus", "25", "Bonus points to award for clean witch kills.", FCVAR_NONE, true, 0.0);
-    g_hCvarPrint = CreateConVar("sm_witch_bonus_print", "1", "Should we print when we award points for killing the witch?", FCVAR_NONE, true, 0.0, true, 1.0);
-    g_hCvarBonusAlways = CreateConVar("sm_witch_bonus_always", "0", "Should you receive points when something other than survivors kills witch?", FCVAR_NONE, true, 0.0, true, 1.0);
+    g_hCvarBonus = CreateConVar("sm_simple_witch_bonus", "50", "Bonus points to award for clean witch kills.", FCVAR_PLUGIN, true, 0.0);
 
     g_hWitchTrie = CreateTrie();
     g_hTrieEntityCreated = CreateTrie();
@@ -67,7 +63,7 @@ public OnPluginStart()
 }
 
 // player damage tracking
-public OnClientPutInServer(client)
+public OnClientPostAdminCheck(client)
 {
     SDKHook(client, SDKHook_OnTakeDamage, OnTakeDamageByWitch);
 }
@@ -86,7 +82,7 @@ public OnEntityDestroyed(entity)
 }
 
 // witch tracking
-Action: Event_WitchSpawned(Handle:event, const String:name[], bool:dontBroadcast)
+public Action: Event_WitchSpawned(Handle:event, const String:name[], bool:dontBroadcast)
 {
     new witch = GetEventInt(event, "witchid");    
     decl String:witch_key[10];
@@ -95,13 +91,13 @@ Action: Event_WitchSpawned(Handle:event, const String:name[], bool:dontBroadcast
 }
 
 // kill tracking
-Action: Event_WitchKilled(Handle:event, const String:name[], bool:dontBroadcast)
+public Action: Event_WitchKilled(Handle:event, const String:name[], bool:dontBroadcast)
 {
     new witch = GetEventInt(event, "witchid");
     new attacker = GetClientOfUserId( GetEventInt(event, "userid") );
 
     // only award bonus if survivors deal the last blow
-    if ( !IS_VALID_SURVIVOR(attacker) &&  GetConVarBool(g_hCvarBonusAlways) == false ) {
+    if ( !IS_VALID_SURVIVOR(attacker) ) {
         return Plugin_Continue;
     }
     
@@ -118,7 +114,7 @@ Action: Event_WitchKilled(Handle:event, const String:name[], bool:dontBroadcast)
 }
 
 // track witch doing damage to survivors
-Action: OnTakeDamageByWitch(victim, &attacker, &inflictor, &Float:damage, &damagetype)
+public Action: OnTakeDamageByWitch(victim, &attacker, &inflictor, &Float:damage, &damagetype)
 {
     if (IS_VALID_SURVIVOR(victim) && damage > 0.0) {
         if (IsWitch(attacker)) {
@@ -133,11 +129,9 @@ Action: OnTakeDamageByWitch(victim, &attacker, &inflictor, &Float:damage, &damag
 stock GiveWitchBonus()
 {
     new iBonus = GetConVarInt(g_hCvarBonus);
-    if(GetConVarBool(g_hCvarPrint) == true)
-	{
-        PrintToChatAll("\x01Killing the witch has awarded: \x05%d \x01points!", iBonus);
-    }
-    PBONUS_AddRoundBonus(iBonus, true);
+    
+    PrintToChatAll("\x01击杀 Witch \x05获得50 \x01额外奖励分！", iBonus);
+    PBONUS_AddRoundBonus(iBonus);
 }
 
 stock bool: IsWitch(entity)
