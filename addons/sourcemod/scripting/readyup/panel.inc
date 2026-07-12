@@ -191,7 +191,7 @@ void UpdatePanel()
 	if (bufLen != 0)
 	{
 		specBuffer[bufLen] = '\0';
-		FormatEx(nameBuf, sizeof(nameBuf), "->%d. 旁观者%s", ++textCount, specCount > 1 ? "s" : "");
+		FormatEx(nameBuf, sizeof(nameBuf), "->%d. 旁观者", ++textCount);
 		menuPanel.DrawText(nameBuf);
 		ReplaceString(specBuffer, sizeof(specBuffer), "#", "_");
 		if (playerCount > l4d_ready_max_players.IntValue && specCount - casterCount > 1)
